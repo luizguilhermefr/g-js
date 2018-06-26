@@ -35,6 +35,15 @@ function createGeneticImage () {
 
 function runGenetics (e) {
   e.preventDefault()
+
+  const lines = parseInt(linesQuantityInput.value)
+  const popSize = parseInt(populationInput.value)
+  const generations = parseInt(generationsInput.value)
+  const elitism = elitismCheckbox.checked
+
+  const executor = new GeneticExecutor(img, geneticImg, lines, popSize, generations, elitism)
+  executor.executeAll()
+  drawGeneticImage()
 }
 
 function onStartLoading () {
@@ -120,6 +129,11 @@ document.addEventListener('DOMContentLoaded', () => {
   downloadAnchor.style.display = 'none'
   downloadBtn.addEventListener('click', downloadResult)
 
+  // Inputs
+  populationInput = document.getElementById('pop-size-input')
+  linesQuantityInput = document.getElementById('lines-quantity-input')
+  generationsInput = document.getElementById('generations-input')
+  elitismCheckbox = document.getElementById('elitism-checkbox')
 })
 
 // Materialize
@@ -136,11 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
   M.Modal.init(elements, {
     inDuration: 300,
   })
-})
-
-document.addEventListener('DOMContentLoaded', () => {
-  let elements = document.querySelectorAll('select')
-  M.FormSelect.init(elements, {})
 })
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -190,3 +199,13 @@ let fileSelector = null
 // Download
 
 let downloadAnchor = null
+
+// Inputs
+
+let populationInput = null
+
+let linesQuantityInput = null
+
+let generationsInput = null
+
+let elitismCheckbox = null
