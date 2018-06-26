@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <meta charset="UTF-8">
+    <title>RCTools</title>
+</head>
+<body>
+<input id="file-input" type="file" name="name" accept="image/*"/>
+<nav>
+    <div class="nav-wrapper blue-grey darken-1">
+        <a href="#" class="brand-logo">&nbsp&nbspg-js</a>
+    </div>
+</nav>
+<div class="container center-align">
+    <div class="col s6 z-depth-5" id="canvas-original-container">
+        <canvas id="canvas-original-img"></canvas>
+    </div>
+    <div class="col s6 z-depth-5" id="canvas-genetic-container">
+        <canvas id="canvas-genetic-img"></canvas>
+    </div>
+    <a id="download" download="g-js.result.png"></a>
+    <div class="progress" id="preloader">
+        <div class="indeterminate"></div>
+    </div>
+    <div id="modal-resample" class="modal">
+        <div class="modal-content">
+            <h4>Run Genetic Algorithm</h4>
+            <p>Specify the parameters of the algorithm</p>
+            <div class="row">
+                <form class="col s12">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input placeholder="Population size" id="pop-size-input" type="number" class="validate"
+                                   min="1" value="100">
+                            <label for="pop-size-input">Population size</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input placeholder="Quantity of lines (genes)" id="lines-quantity-input" type="number"
+                                   class="validate" min="1" value="1000">
+                            <label for="lines-quantity-input">Quantity of lines</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input placeholder="Generations" id="generations-input" type="number" class="validate"
+                                   min="1" value="100">
+                            <label for="pop-size-input">Generations</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <label for="elitism-checkbox">
+                                <input id="elitism-checkbox" class="filled-in" type="checkbox" checked="checked">
+                                <span>Elitism</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a class="modal-close waves-effect waves-light btn red">
+                            Cancel
+                        </a>
+                        <button type="submit" class="modal-close waves-effect waves-light btn green"
+                                id="confirm-resample">
+                            OK
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="modal-about" class="modal">
+        <div class="modal-content">
+            <h4>About</h4>
+            <p>g-js 1.0</p>
+            <div class="row">
+                <ul class="collection">
+                    <li class="collection-item">GABRIEL MEDINA MARQUES</li>
+                    <li class="collection-item">LUIZ GUILHERME FONSECA ROSA</li>
+                    <li class="collection-item">PROF. ADAIR SANTA CATARINA</li>
+                </ul>
+            </div>
+            <div class="row">
+                <p>UNIOESTE, 2018</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="modal-close waves-effect waves-light btn green">
+                OK
+            </a>
+        </div>
+    </div>
+    <div class="fixed-action-btn">
+        <a class="btn-floating btn-large blue-grey darken-1 pulse">
+            <i class="large material-icons">
+                apps
+            </i>
+        </a>
+        <ul>
+            <li>
+                <a class="btn-floating green tooltipped" data-tooltip="Open picture" data-position="left"
+                   data-delay="50" onclick="selectFile()" id="upload-btn">
+                    <i class="material-icons">
+                        file_upload
+                    </i>
+                </a>
+            </li>
+            <li>
+                <a class="btn-floating yellow darken-1 tooltipped disabled" data-tooltip="Download result"
+                   data-position="left" data-delay="50" id="download-btn">
+                    <i class="material-icons">
+                        file_download
+                    </i>
+                </a>
+            </li>
+            <li>
+                <a class="btn-floating red modal-trigger tooltipped disabled" data-target="modal-resample"
+                   data-position="left" data-tooltip="Run" data-delay="50" id="run-btn">
+                    <i class="material-icons">
+                        grain
+                    </i>
+                </a>
+            </li>
+            <li>
+                <a class="btn-floating blue modal-trigger tooltipped" data-target="modal-about" data-tooltip="About"
+                   data-position="left" data-delay="50" id="about-btn">
+                    <i class="material-icons">
+                        announcement
+                    </i>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"
+        type="text/javascript"></script>
+<script src="js/main.js"></script>
+<script src="lib/SimpleImage.js"></script>
+</body>
+</html>
