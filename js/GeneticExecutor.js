@@ -1,3 +1,25 @@
+function PictureUtils () {
+  this.calculateNtscY = function (pixel) {
+    return 0.299 * pixel.getRed() + 0.587 * pixel.getGreen() + 0.114 * pixel.getBlue()
+  }
+
+  this.shouldBlackNotWhite = function (val) {
+    return val < 50
+  }
+
+  this.setPixelWhite = function (pixel) {
+    pixel.setRed(255)
+    pixel.setGreen(255)
+    pixel.setBlue(255)
+  }
+
+  this.setPixelBlack = function (pixel) {
+    pixel.setRed(0)
+    pixel.setGreen(0)
+    pixel.setBlue(0)
+  }
+}
+
 function Cromossome (genesQuantity, imgWidth, imgHeight) {
   this.generateGenes = function () {
     for (let i = 0; i < genesQuantity; ++i) {
@@ -35,25 +57,32 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
         this.nextIteration()
         this.currentIteration++
       }
-      callback(this.target)
+      callback(this.referencePicture)
     }, 0)
   }
 
   this.createTargetOutput = function () {
-    this.target = new SimpleImage(originalImg.width, originalImg.height)
+    const utility = new PictureUtils()
+    this.target = new SimpleImage(this.referencePicture.width, this.referencePicture.height)
     this.target.pixels().forEach((pixel) => {
-      pixel.setRed(255)
-      pixel.setGreen(255)
-      pixel.setBlue(255)
+      utility.setPixelWhite(pixel)
     })
   }
 
   this.prepareInput = function () {
-    // Limiarize etc.
+    const utility = new PictureUtils()
+    this.referencePicture.pixels().forEach((pixel) => {
+      const ntscY = utility.calculateNtscY(pixel)
+      if (utility.shouldBlackNotWhite(ntscY)) {
+        utility.setPixelBlack(pixel)
+      } else {
+        utility.setPixelWhite(pixel)
+      }
+    })
   }
 
   this.randomCromossome = function () {
-    const cromossome = new Cromossome(linesQuantity, originalImg.width, originalImg.height)
+    const cromossome = new Cromossome(linesQuantity, this.referencePicture.width, this.referencePicture.height)
     cromossome.generateGenes()
     return cromossome
   }
@@ -75,4 +104,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   this.currentIteration = 1
 
   this.generations = generations
+
+  this.referencePicture = Object.assign(Object.create(Object.getPrototypeOf(originalImg)), originalImg) // clone
 }
