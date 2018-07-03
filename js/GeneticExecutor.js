@@ -18,6 +18,28 @@ function PictureUtils () {
     pixel.setGreen(0)
     pixel.setBlue(0)
   }
+
+  this.drawLine = function (target, x0, y0, x1, y1) {
+    if (x1 > x0) {
+      const tmpx0 = x0, tmpy0 = y0
+      x0 = x1
+      y0 = y1
+      x1 = tmpx0
+      y1 = tmpy0
+    }
+    const dx = x1 - x0
+    const dy = y1 - y0
+    const steps = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy)
+    const xInc = dx / steps
+    const yInc = dy / steps
+    let x = x0
+    let y = y0
+    for (let i = 0; i <= steps; i++) {
+      this.setPixelBlack(target.getPixel(x, y))
+      x += xInc
+      y += yInc
+    }
+  }
 }
 
 function Gene (maxX, maxY, start, end) {
@@ -49,6 +71,29 @@ function Cromossome (genesQuantity, imgWidth, imgHeight) {
     return new Gene(imgWidth, imgHeight, from, to)
   }
 
+  this.equals = function (other) {
+    return this.genes === other.genes
+  }
+
+  this.makePicture = function (target) {
+    const utility = new PictureUtils()
+    target = new SimpleImage(imgWidth, imgHeight)
+    target.pixels().forEach((pixel) => {
+      utility.setPixelWhite(pixel)
+    })
+    this.genes.forEach((gene) => {
+      const x0 = gene.from[0]
+      const y0 = gene.from[1]
+      const x1 = gene.to[0]
+      const y1 = gene.to[1]
+      utility.drawLine(target, x0, y0, x1, y1)
+    })
+  }
+
+  this.resultPicture = null
+
+  this.latestFitness = 0
+
   this.genes = []
 }
 
@@ -56,7 +101,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   this.executeAll = function (callback) {
     setTimeout(() => {
       this.prepareInput()
-      this.createTargetOutput()
       this.generateInitialPopulation()
       while (this.hasNextIteration()) {
         this.nextIteration()
@@ -78,14 +122,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
     })
   }
 
-  this.createTargetOutput = function () {
-    const utility = new PictureUtils()
-    this.target = new SimpleImage(this.referencePicture.width, this.referencePicture.height)
-    this.target.pixels().forEach((pixel) => {
-      utility.setPixelWhite(pixel)
-    })
-  }
-
   this.generateInitialPopulation = function () {
     for (let i = 0; i < populationSize; ++i) {
       this.currentPopulation.push(this.randomCromossome())
@@ -99,15 +135,40 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   }
 
   this.hasNextIteration = function () {
-    return this.currentIteration < this.generations
+    return this.currentIteration < generations
   }
 
   this.nextIteration = function () {
-    this.calculateFitness()
+    const first = this.roulette()
+    let second = this.roulette()
+    while (second.equals(first)) {
+      second = this.roulette()
+    }
   }
 
-  this.calculateFitness = function () {
-    //
+  this.roulette = function () {
+    const fitnessSum = this.currentPopulation.reduce((previousValue, cromossome) => {
+      return this.calculateFitness(cromossome) + previousValue
+    }, 0)
+    const rndDrawn = Math.random() * fitnessSum
+    let accumulated = 0
+    let chosen = null
+    this.currentPopulation.every((el) => {
+      const accumulatedBeforeSum = accumulated
+      accumulated += el.latestFitness
+      if (accumulatedBeforeSum <= rndDrawn && accumulated >= rndDrawn) {
+        chosen = el
+        return false // break
+      }
+      return true // continue
+    })
+    return chosen
+  }
+
+  this.calculateFitness = function (cromossome) {
+    const fitness = 0
+    cromossome.makePicture(this.target)
+    cromossome.latestFitness = fitness
   }
 
   this.target = null
@@ -115,8 +176,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   this.currentPopulation = []
 
   this.currentIteration = 1
-
-  this.generations = generations
 
   this.referencePicture = Object.assign(Object.create(Object.getPrototypeOf(originalImg)), originalImg) // clone
 }
