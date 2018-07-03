@@ -9,41 +9,38 @@ function onSelectFile () {
 }
 
 function openFile (file) {
-  img = new SimpleImage(file)
-  onStartLoading()
-  setTimeout(onImageOpened, 1000)
+  originalSimpleImage = new SimpleImage(file)
+  onReady()
+  drawOriginalImage()
 }
 
 function drawOriginalImage () {
   setCanvasContainerDimensions(canvasOriginal)
-  img.drawTo(canvasOriginal)
+  originalSimpleImage.drawTo(canvasOriginal)
 }
 
-function drawGeneticImage () {
+function onReady () {
+  canvasOriginalContainer.style.display = ''
+  canvasOriginal.style.display = ''
+  runBtn.classList.remove('disabled')
+}
+
+function drawGeneticImage (geneticImg) {
   setCanvasContainerDimensions(canvasGenetic)
   geneticImg.drawTo(canvasGenetic)
 }
 
-function createGeneticImage () {
-  geneticImg = new SimpleImage(img.width, img.height)
-  geneticImg.pixels().forEach((pixel) => {
-    pixel.setRed(255)
-    pixel.setGreen(255)
-    pixel.setBlue(255)
-  })
-}
-
-function runGenetics (e) {
+function onStartGenetics (e) {
   e.preventDefault()
-
   const lines = parseInt(linesQuantityInput.value)
   const popSize = parseInt(populationInput.value)
   const generations = parseInt(generationsInput.value)
   const elitism = elitismCheckbox.checked
-
-  const executor = new GeneticExecutor(img, geneticImg, lines, popSize, generations, elitism)
-  executor.executeAll()
-  drawGeneticImage()
+  onStartLoading()
+  new GeneticExecutor(originalSimpleImage, lines, popSize, generations, elitism).executeAll((result) => {
+    onEndLoading()
+    drawGeneticImage(result)
+  })
 }
 
 function onStartLoading () {
@@ -52,34 +49,21 @@ function onStartLoading () {
   canvasGenetic.style.display = 'none'
   canvasGeneticContainer.style.display = 'none'
   preloaderSpinner.style.display = ''
-  downloadBtn.classList.add('disabled')
-  runBtn.classList.add('disabled')
 }
 
 function onEndLoading () {
   preloaderSpinner.style.display = 'none'
-  canvasOriginalContainer.style.display = ''
   canvasOriginal.style.display = ''
+  canvasOriginalContainer.style.display = ''
   canvasGenetic.style.display = ''
   canvasGeneticContainer.style.display = ''
   downloadBtn.classList.remove('disabled')
-  runBtn.classList.remove('disabled')
-}
-
-function onImageOpened () {
-  drawOriginalImage()
-  createGeneticImage()
-  drawGeneticImage()
-  M.toast({html: 'File opened: ' + img.width + 'x' + img.height})
-  onEndLoading()
 }
 
 function downloadResult () {
-  if (img !== null) {
-    downloadAnchor.href = canvasOriginal.toDataURL('image/png')
-      .replace('image/png', 'image/octet-stream')
-    downloadAnchor.click()
-  }
+  downloadAnchor.href = canvasGenetic.toDataURL('image/png')
+    .replace('image/png', 'image/octet-stream')
+  downloadAnchor.click()
 }
 
 function setCanvasContainerDimensions (canvas) {
@@ -115,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   fileInput = document.getElementById('file-input')
 
-  startGenetics = document.getElementById('confirm-resample')
-  startGenetics.addEventListener('click', runGenetics)
+  startGenetics = document.getElementById('run-genetics')
+  startGenetics.addEventListener('click', onStartGenetics)
 
   // Menu
   uploadBtn = document.getElementById('upload-btn')
@@ -134,27 +118,21 @@ document.addEventListener('DOMContentLoaded', () => {
   linesQuantityInput = document.getElementById('lines-quantity-input')
   generationsInput = document.getElementById('generations-input')
   elitismCheckbox = document.getElementById('elitism-checkbox')
-})
 
-// Materialize
-document.addEventListener('DOMContentLoaded', () => {
-  let elements = document.querySelectorAll('.fixed-action-btn')
-  M.FloatingActionButton.init(elements, {
+  //Materialize
+  let floatActionEls = document.querySelectorAll('.fixed-action-btn')
+  M.FloatingActionButton.init(floatActionEls, {
     direction: 'top',
     hoverEnabled: false,
   })
-})
 
-document.addEventListener('DOMContentLoaded', () => {
-  let elements = document.querySelectorAll('.modal')
-  M.Modal.init(elements, {
+  let modalEls = document.querySelectorAll('.modal')
+  M.Modal.init(modalEls, {
     inDuration: 300,
   })
-})
 
-document.addEventListener('DOMContentLoaded', () => {
-  let elements = document.querySelectorAll('.tooltipped')
-  M.Tooltip.init(elements, {
+  let tooltippedEls = document.querySelectorAll('.tooltipped')
+  M.Tooltip.init(tooltippedEls, {
     enterDelay: 300,
     delay: 50,
   })
@@ -188,9 +166,7 @@ let aboutBtn = null
 
 // Img
 
-let img = null
-
-let geneticImg = null
+let originalSimpleImage = null
 
 // File
 

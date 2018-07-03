@@ -17,17 +17,39 @@ function Cromossome (genesQuantity, imgWidth, imgHeight) {
 function Gene (maxX, maxY, start, end) {
 }
 
-function GeneticExecutor (originalImg, targetImg, linesQuantity, populationSize, generations, elitism = false) {
-
-  this.nextIteration = function () {
-
+function GeneticExecutor (originalImg, linesQuantity, populationSize, generations, elitism = false) {
+  this.calculateFitness = function () {
+    //
   }
 
-  this.executeAll = function () {
-    while (this.hasNextIteration()) {
-      this.nextIteration()
-      this.currentIteration++
-    }
+  this.nextIteration = function () {
+    this.calculateFitness()
+  }
+
+  this.executeAll = function (callback) {
+    setTimeout(() => {
+      this.prepareInput()
+      this.createTargetOutput()
+      this.generateInitialPopulation()
+      while (this.hasNextIteration()) {
+        this.nextIteration()
+        this.currentIteration++
+      }
+      callback(this.target)
+    }, 0)
+  }
+
+  this.createTargetOutput = function () {
+    this.target = new SimpleImage(originalImg.width, originalImg.height)
+    this.target.pixels().forEach((pixel) => {
+      pixel.setRed(255)
+      pixel.setGreen(255)
+      pixel.setBlue(255)
+    })
+  }
+
+  this.prepareInput = function () {
+    // Limiarize etc.
   }
 
   this.randomCromossome = function () {
@@ -46,11 +68,11 @@ function GeneticExecutor (originalImg, targetImg, linesQuantity, populationSize,
     return this.currentIteration < this.generations
   }
 
+  this.target = null
+
   this.currentPopulation = []
 
   this.currentIteration = 1
 
   this.generations = generations
-
-  this.generateInitialPopulation()
 }
