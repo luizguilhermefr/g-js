@@ -8,25 +8,18 @@ function PictureUtils () {
   }
 
   this.setPixelWhite = function (pixel) {
-    pixel.setRed(255)
-    pixel.setGreen(255)
-    pixel.setBlue(255)
+    pixel.setRed(this.WHITE)
+    pixel.setGreen(this.WHITE)
+    pixel.setBlue(this.WHITE)
   }
 
   this.setPixelBlack = function (pixel) {
-    pixel.setRed(0)
-    pixel.setGreen(0)
-    pixel.setBlue(0)
+    pixel.setRed(this.BLACK)
+    pixel.setGreen(this.BLACK)
+    pixel.setBlue(this.BLACK)
   }
 
-  this.drawLine = function (target, x0, y0, x1, y1) {
-    if (x1 > x0) {
-      const tmpx0 = x0, tmpy0 = y0
-      x0 = x1
-      y0 = y1
-      x1 = tmpx0
-      y1 = tmpy0
-    }
+  this.drawLine = function ({matrix, x0, y0, x1, y1}) {
     const dx = x1 - x0
     const dy = y1 - y0
     const steps = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy)
@@ -35,11 +28,15 @@ function PictureUtils () {
     let x = x0
     let y = y0
     for (let i = 0; i <= steps; i++) {
-      this.setPixelBlack(target.getPixel(x, y))
+      matrix[y][x] = this.BLACK
       x += xInc
       y += yInc
     }
   }
+
+  this.WHITE = 255
+
+  this.BLACK = 0
 }
 
 function Gene (maxX, maxY, start, end) {
@@ -75,22 +72,24 @@ function Cromossome (genesQuantity, imgWidth, imgHeight) {
     return this.genes === other.genes
   }
 
-  this.makePicture = function (target) {
+  this.toPixelMatrix = function () {
     const utility = new PictureUtils()
-    target = new SimpleImage(imgWidth, imgHeight)
-    target.pixels().forEach((pixel) => {
-      utility.setPixelWhite(pixel)
-    })
+    const matrix = []
+    for (let y = 0; y < imgHeight; y++) {
+      matrix[y] = []
+      for (let x = 0; x < imgWidth; x++) {
+        matrix[y][x] = utility.WHITE
+      }
+    }
     this.genes.forEach((gene) => {
       const x0 = gene.from[0]
       const y0 = gene.from[1]
       const x1 = gene.to[0]
       const y1 = gene.to[1]
-      utility.drawLine(target, x0, y0, x1, y1)
+      utility.drawLine({matrix, x0, y0, x1, y1})
     })
+    return matrix
   }
-
-  this.resultPicture = null
 
   this.latestFitness = 0
 
@@ -112,14 +111,19 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
 
   this.prepareInput = function () {
     const utility = new PictureUtils()
-    this.referencePicture.pixels().forEach((pixel) => {
-      const ntscY = utility.calculateNtscY(pixel)
-      if (utility.shouldBlackNotWhite(ntscY)) {
-        utility.setPixelBlack(pixel)
-      } else {
-        utility.setPixelWhite(pixel)
+    for (let y = 0; y < originalImg.height; y++) {
+      this.referencePicture[y] = []
+      for (let x = 0; x < originalImg.width; x++) {
+        const pixel = originalImg.getPixel(x, y)
+        const ntscY = utility.calculateNtscY(pixel)
+        if (utility.shouldBlackNotWhite(ntscY)) {
+          utility.setPixelBlack(pixel)
+          this.referencePicture[y][x] = utility.BLACK
+        } else {
+          this.referencePicture[y][x] = utility.WHITE
+        }
       }
-    })
+    }
   }
 
   this.generateInitialPopulation = function () {
@@ -129,7 +133,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   }
 
   this.randomCromossome = function () {
-    const cromossome = new Cromossome(linesQuantity, this.referencePicture.width, this.referencePicture.height)
+    const cromossome = new Cromossome(linesQuantity, originalImg.width, originalImg.height)
     cromossome.generateGenes()
     return cromossome
   }
@@ -166,9 +170,21 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   }
 
   this.calculateFitness = function (cromossome) {
-    const fitness = 0
-    cromossome.makePicture(this.target)
+    const pictureMatrix = cromossome.toPixelMatrix()
+    let fitness = 0
+    for (let y = 0; y < this.referencePicture.height; y++) {
+      for (let x = 0; x < this.referencePicture.width; x++) {
+        const originalPixel = this.referencePicture[y][x]
+        const synteticPixel = pictureMatrix[y][x]
+        if (originalPixel === synteticPixel) {
+          fitness++
+        } else {
+          fitness--
+        }
+      }
+    }
     cromossome.latestFitness = fitness
+    return fitness
   }
 
   this.target = null
@@ -177,5 +193,5 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
 
   this.currentIteration = 1
 
-  this.referencePicture = Object.assign(Object.create(Object.getPrototypeOf(originalImg)), originalImg) // clone
+  this.referencePicture = [] // clone
 }
