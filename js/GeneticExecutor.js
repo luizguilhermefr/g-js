@@ -96,17 +96,17 @@ function PictureUtils () {
   this.BLACK = 0
 }
 
-function Gene (maxX, maxY, start, end) {
+function Gene (imgWidth, imgHeight, start, end) {
   this.mutate = function (rate) {
     const randomUtils = new RandomUtils()
     this.from[0] = randomUtils.randomInteger(this.from[0] - rate, this.from[0] + rate)
     this.from[1] = randomUtils.randomInteger(this.from[1] - rate, this.from[1] + rate)
     this.to[0] = randomUtils.randomInteger(this.to[0] - rate, this.from[0] + rate)
     this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.from[1] + rate)
-    this.from[0] = this.from[0] > maxX ? maxX : this.from[0]
-    this.from[1] = this.from[1] > maxY ? maxY : this.from[1]
-    this.to[0] = this.to[0] > maxX ? maxX : this.to[0]
-    this.to[1] = this.to[1] > maxY ? maxY : this.to[1]
+    this.from[0] = this.from[0] > (imgWidth - 1) ? (imgWidth - 1) : this.from[0]
+    this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
+    this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
+    this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
   }
 
   this.from = start
@@ -128,8 +128,9 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
   }
 
   this.randomGene = function () {
-    const from = [Math.floor(Math.random() * imgWidth), Math.floor(Math.random() * imgHeight)]
-    const to = [Math.floor(Math.random() * imgWidth), Math.floor(Math.random() * imgHeight)]
+    const randomUtils = new RandomUtils()
+    const from = [randomUtils.randomInteger(0, imgWidth - 1), randomUtils.randomInteger(0, imgHeight - 1)]
+    const to = [randomUtils.randomInteger(0, imgWidth - 1), randomUtils.randomInteger(0, imgHeight - 1)]
     return new Gene(imgWidth, imgHeight, from, to)
   }
 
@@ -147,11 +148,7 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
       }
     }
     this.genes.forEach((gene) => {
-      const x0 = gene.from[0]
-      const y0 = gene.from[1]
-      const x1 = gene.to[0]
-      const y1 = gene.to[1]
-      utility.drawLine({matrix, x0, y0, x1, y1})
+      utility.drawLine({matrix, x0: gene.from[0], y0: gene.from[1], x1: gene.to[0], y1: gene.to[1]})
     })
     return matrix
   }
