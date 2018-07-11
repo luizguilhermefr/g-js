@@ -12,6 +12,12 @@ function openFile (file) {
   originalSimpleImage = new SimpleImage(file)
   onReady()
   drawOriginalImage()
+  openModalForGenetics()
+}
+
+function openModalForGenetics () {
+  const instance = M.Modal.getInstance(startModal)
+  instance.open()
 }
 
 function drawOriginalImage () {
@@ -120,6 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
   elitismCheckbox = document.getElementById('elitism-checkbox')
 
   //Materialize
+  startModal = document.getElementById('modal-start')
+
   let floatActionEls = document.querySelectorAll('.fixed-action-btn')
   M.FloatingActionButton.init(floatActionEls, {
     direction: 'top',
@@ -153,6 +161,8 @@ let canvasGeneticContainer = null
 let startGenetics = null
 
 let fileInput = null
+
+let startModal = null
 
 // Menu
 

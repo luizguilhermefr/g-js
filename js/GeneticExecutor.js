@@ -137,19 +137,33 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
   }
 
   this.genes = initialGenes
+
+  this.latestFitness = 0
 }
 
 function GeneticExecutor (originalImg, linesQuantity, populationSize, generations, elitism = false) {
   this.executeAll = function (callback) {
     setTimeout(() => {
-      this.prepareInput()
-      this.generateInitialPopulation()
+      this.prepareToRun()
       while (this.hasNextIteration()) {
         this.nextIteration()
         this.currentIteration++
       }
       callback(this.bestCromossomeOfAllTimes.toSimpleImage())
-    }, 0)
+    }, 300)
+  }
+
+  this.prepareToRun = function () {
+    this.prepareInput()
+    this.generateInitialPopulation()
+  }
+
+  this.executeSingleIteration = function (callback) {
+    setTimeout(() => {
+      this.nextIteration()
+      this.currentIteration++
+      callback(this.bestCromossomeOfAllTimes.toSimpleImage())
+    }, 100)
   }
 
   this.prepareInput = function () {
@@ -159,11 +173,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
       for (let x = 0; x < originalImg.width; x++) {
         const pixel = originalImg.getPixel(x, y)
         const ntscY = utility.calculateNtscY(pixel)
-        if (utility.shouldBlackNotWhite(ntscY)) {
-          this.referencePicture[y][x] = utility.BLACK
-        } else {
-          this.referencePicture[y][x] = utility.WHITE
-        }
+        this.referencePicture[y][x] = utility.shouldBlackNotWhite(ntscY) ? utility.BLACK : utility.WHITE
       }
     }
   }
