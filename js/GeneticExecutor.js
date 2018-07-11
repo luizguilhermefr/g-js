@@ -53,6 +53,18 @@ function PictureUtils () {
     }
   }
 
+  this.matrixToSimpleImage = function (matrix) {
+    const simpleImage = new SimpleImage(matrix[0].length, matrix.length)
+    for (let y = 0; y < matrix.length; y++) {
+      for (let x = 0; x < matrix[y].length; x++) {
+        const synteticPixel = matrix[y][x]
+        const originalPixel = simpleImage.getPixel(x, y)
+        this.setPixelGrayScale(originalPixel, synteticPixel)
+      }
+    }
+    return simpleImage
+  }
+
   this.WHITE = 255
 
   this.BLACK = 0
@@ -120,17 +132,8 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
   }
 
   this.toSimpleImage = function () {
-    const utility = new PictureUtils()
     const matrix = this.toPixelMatrix()
-    const simpleImage = new SimpleImage(imgWidth, imgHeight)
-    for (let y = 0; y < imgHeight; y++) {
-      for (let x = 0; x < imgWidth; x++) {
-        const synteticPixel = matrix[y][x]
-        const originalPixel = simpleImage.getPixel(x, y)
-        utility.setPixelGrayScale(originalPixel, synteticPixel)
-      }
-    }
-    return simpleImage
+    return (new PictureUtils()).matrixToSimpleImage(matrix)
   }
 
   this.genes = initialGenes
@@ -190,7 +193,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
     }
     const firstSon = this.crossover(first, second)
     const secondSon = this.crossover(second, first)
-    this.currentPopulation.filter((cromossome) => cromossome !== first && cromossome !== second)
+    this.currentPopulation = this.currentPopulation.filter((cromossome) => cromossome !== first && cromossome !== second)
     this.currentPopulation.push(firstSon)
     this.currentPopulation.push(secondSon)
     this.mutateEveryCromossome()
