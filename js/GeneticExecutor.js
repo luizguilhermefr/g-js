@@ -31,64 +31,36 @@ function PictureUtils () {
     pixel.setBlue(scale)
   }
 
-  this.vLine = function ({matrix, x, y0, y1}) {
-    const ya = Math.round(y0)
-    const yb = Math.round(y1)
-    const y = ya < yb ? ya : yb
-    for (let i = Math.abs(ya - yb); i >= 0; i--) {
-      matrix[y + i][x] = this.BLACK
-    }
-  }
-
-  this.hLine = function ({matrix, y, x0, x1}) {
-    const xa = Math.round(x0)
-    const xb = Math.round(x1)
-    const x = xa < xb ? xa : xb
-    for (let i = Math.abs(xa - xb); i >= 0; i--) {
-      matrix[y][x + i] = this.BLACK
-    }
-  }
-
   this.drawLine = function ({matrix, x0, y0, x1, y1}) {
-    let xa = Math.round(x0)
-    let ya = Math.round(y0)
-    let xb = Math.round(x1)
-    let yb = Math.round(y1)
-    let dx = xb - xa
-    let dy = yb - ya
-    let cInc, rInc, h, i
-    if (dx === 0) return this.vLine({matrix, x: x0, y0, y1})
-    else if (dy === 0) return this.hLine({matrix, y: y0, x0, x1})
-    cInc = dx < 0 ? -1 : 1
-    rInc = dy < 0 ? -1 : 1
-    dx = Math.abs(dx)
-    dy = Math.abs(dy)
-    if (dx >= dy) {
-      h = -dx
-      matrix[ya][xa] = this.BLACK
-      for (i = dx; i > 0; i--) {
-        xa += cInc
-        h += 2 * dy
-        if (h >= 0) {
-          ya += rInc
-          h -= 2 * dx
-        }
-        matrix[ya][xa] = this.BLACK
-      }
-
-    } else {
-      h = -dy
-      matrix[ya][xa] = this.BLACK
-      for (i = dy; i > 0; i--) {
-        ya += rInc
-        h += 2 * dx
-        if (h >= 0) {
-          xa += cInc
-          h -= 2 * dy
-        }
-        matrix[ya][xa] = this.BLACK
-      }
+    // Invert pixels if x1 > x0
+    let xa = x0, ya = y0, xb = x1, yb = y1
+    if (x1 > x0) {
+      xa = x1
+      ya = y1
+      xb = x0
+      yb = y0
     }
+
+    // calculate dx & dy
+    const dx = xb - xa
+    const dy = yb - ya
+
+    // calculate steps required for generating pixels
+    const steps = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy)
+
+    // calculate increment in x & y for each steps
+    const xinc = dx / steps
+    const yinc = dy / steps
+
+    // Put pixel for each step
+    let x = xa
+    let y = ya
+    for (let i = 0; i <= steps; i++) {
+      matrix[Math.round(y)][Math.round(x)] = this.BLACK
+      x += xinc           // increment in x at each step
+      y += yinc           // increment in y at each step
+    }
+
   }
 
   this.WHITE = 255
