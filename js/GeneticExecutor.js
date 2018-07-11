@@ -32,7 +32,6 @@ function PictureUtils () {
   }
 
   this.drawLine = function ({matrix, x0, y0, x1, y1}) {
-    // Invert pixels if x1 > x0
     let xa = x0, ya = y0, xb = x1, yb = y1
     if (x1 > x0) {
       xa = x1
@@ -40,19 +39,11 @@ function PictureUtils () {
       xb = x0
       yb = y0
     }
-
-    // calculate dx & dy
     const dx = xb - xa
     const dy = yb - ya
-
-    // calculate steps required for generating pixels
     const steps = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy)
-
-    // calculate increment in x & y for each steps
     const xinc = dx / steps
     const yinc = dy / steps
-
-    // Put pixel for each step
     let x = xa
     let y = ya
     for (let i = 0; i <= steps; i++) {
@@ -60,7 +51,6 @@ function PictureUtils () {
       x += xinc           // increment in x at each step
       y += yinc           // increment in y at each step
     }
-
   }
 
   this.WHITE = 255
@@ -77,8 +67,12 @@ function Gene (imgWidth, imgHeight, start, end) {
     this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.from[1] + rate)
     this.from[0] = this.from[0] > (imgWidth - 1) ? (imgWidth - 1) : this.from[0]
     this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
+    this.from[0] = this.from[0] < 0 ? 0 : this.from[0]
+    this.from[1] = this.from[1] < 0 ? 0 : this.from[1]
     this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
     this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
+    this.to[0] = this.to[0] < 0 ? 0 : this.to[0]
+    this.to[1] = this.to[1] < 0 ? 0 : this.to[1]
   }
 
   this.from = start
@@ -163,7 +157,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
         const pixel = originalImg.getPixel(x, y)
         const ntscY = utility.calculateNtscY(pixel)
         if (utility.shouldBlackNotWhite(ntscY)) {
-          utility.setPixelBlack(pixel)
           this.referencePicture[y][x] = utility.BLACK
         } else {
           this.referencePicture[y][x] = utility.WHITE
