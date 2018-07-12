@@ -31,9 +31,21 @@ function onReady () {
   runBtn.classList.remove('disabled')
 }
 
-function drawGeneticImage (geneticImg) {
+function drawGeneticImage (cromossome) {
   setCanvasContainerDimensions(canvasGenetic)
-  geneticImg.drawTo(canvasGenetic)
+  const context = canvasGenetic.getContext('2d')
+  context.clearRect(0, 0, canvasGenetic.width, canvasGenetic.height)
+  context.beginPath()
+  context.rect(0, 0, canvasGenetic.width, canvasGenetic.height)
+  context.fillStyle = 'white'
+  context.fill()
+  cromossome.genes.forEach((gene) => {
+    console.log(gene.from)
+    console.log(gene.to)
+    context.moveTo(gene.from[0], gene.from[1])
+    context.lineTo(gene.to[0], gene.to[1])
+  })
+  context.stroke()
 }
 
 function onStartGenetics (e) {
@@ -43,9 +55,9 @@ function onStartGenetics (e) {
   const generations = parseInt(generationsInput.value)
   const elitism = elitismCheckbox.checked
   onStartLoading()
-  new GeneticExecutor(originalSimpleImage, lines, popSize, generations, elitism).executeAll((result) => {
+  new GeneticExecutor(originalSimpleImage, lines, popSize, generations, elitism).executeAll((cromossome) => {
     onEndLoading()
-    drawGeneticImage(result)
+    drawGeneticImage(cromossome)
   })
 }
 

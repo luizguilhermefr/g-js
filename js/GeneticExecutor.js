@@ -51,18 +51,8 @@ function PictureUtils () {
       x += xinc           // increment in x at each step
       y += yinc           // increment in y at each step
     }
-  }
 
-  this.matrixToSimpleImage = function (matrix) {
-    const simpleImage = new SimpleImage(matrix[0].length, matrix.length)
-    for (let y = 0; y < matrix.length; y++) {
-      for (let x = 0; x < matrix[y].length; x++) {
-        const synteticPixel = matrix[y][x]
-        const originalPixel = simpleImage.getPixel(x, y)
-        this.setPixelGrayScale(originalPixel, synteticPixel)
-      }
-    }
-    return simpleImage
+    return matrix
   }
 
   this.WHITE = 255
@@ -71,20 +61,22 @@ function PictureUtils () {
 }
 
 function Gene (imgWidth, imgHeight, start, end) {
-  this.mutate = function (rate) {
-    const randomUtils = new RandomUtils()
-    this.from[0] = randomUtils.randomInteger(this.from[0] - rate, this.from[0] + rate)
-    this.from[1] = randomUtils.randomInteger(this.from[1] - rate, this.from[1] + rate)
-    this.to[0] = randomUtils.randomInteger(this.to[0] - rate, this.from[0] + rate)
-    this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.from[1] + rate)
-    this.from[0] = this.from[0] > (imgWidth - 1) ? (imgWidth - 1) : this.from[0]
-    this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
-    this.from[0] = this.from[0] < 0 ? 0 : this.from[0]
-    this.from[1] = this.from[1] < 0 ? 0 : this.from[1]
-    this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
-    this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
-    this.to[0] = this.to[0] < 0 ? 0 : this.to[0]
-    this.to[1] = this.to[1] < 0 ? 0 : this.to[1]
+  this.mutate = function (rate, chance) {
+    if (Math.random() <= chance) {
+      const randomUtils = new RandomUtils()
+      this.from[0] = randomUtils.randomInteger(this.from[0] - rate, this.from[0] + rate)
+      this.from[1] = randomUtils.randomInteger(this.from[1] - rate, this.from[1] + rate)
+      this.to[0] = randomUtils.randomInteger(this.to[0] - rate, this.from[0] + rate)
+      this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.from[1] + rate)
+      this.from[0] = this.from[0] > (imgWidth - 1) ? (imgWidth - 1) : this.from[0]
+      this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
+      this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
+      this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
+      this.from[0] = this.from[0] < 0 ? 0 : this.from[0]
+      this.from[1] = this.from[1] < 0 ? 0 : this.from[1]
+      this.to[0] = this.to[0] < 0 ? 0 : this.to[0]
+      this.to[1] = this.to[1] < 0 ? 0 : this.to[1]
+    }
   }
 
   this.from = start
@@ -99,9 +91,9 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
     }
   }
 
-  this.mutate = function (rate) {
+  this.mutate = function (rate, chance) {
     this.genes.forEach((gene) => {
-      gene.mutate(rate)
+      gene.mutate(rate, chance)
     })
   }
 
@@ -118,7 +110,7 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
 
   this.toPixelMatrix = function () {
     const utility = new PictureUtils()
-    const matrix = []
+    let matrix = []
     for (let y = 0; y < imgHeight; y++) {
       matrix[y] = []
       for (let x = 0; x < imgWidth; x++) {
@@ -126,14 +118,9 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
       }
     }
     this.genes.forEach((gene) => {
-      utility.drawLine({matrix, x0: gene.from[0], y0: gene.from[1], x1: gene.to[0], y1: gene.to[1]})
+      matrix = utility.drawLine({matrix, x0: gene.from[0], y0: gene.from[1], x1: gene.to[0], y1: gene.to[1]})
     })
     return matrix
-  }
-
-  this.toSimpleImage = function () {
-    const matrix = this.toPixelMatrix()
-    return (new PictureUtils()).matrixToSimpleImage(matrix)
   }
 
   this.genes = initialGenes
@@ -149,7 +136,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
         this.nextIteration()
         this.currentIteration++
       }
-      callback(this.bestCromossomeOfAllTimes.toSimpleImage())
+      callback(this.bestCromossomeOfAllTimes)
     }, 300)
   }
 
@@ -162,7 +149,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
     setTimeout(() => {
       this.nextIteration()
       this.currentIteration++
-      callback(this.bestCromossomeOfAllTimes.toSimpleImage())
+      callback(this.bestCromossomeOfAllTimes)
     }, 100)
   }
 
@@ -215,7 +202,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
 
   this.mutateEveryCromossome = function () {
     this.currentPopulation.forEach((cromossome) => {
-      cromossome.mutate(this.mutationRate)
+      cromossome.mutate(this.mutationRate, this.chanceToMutate)
     })
   }
 
@@ -256,11 +243,7 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
         for (let x = 0; x < originalImg.width; x++) {
           const originalPixel = this.referencePicture[y][x]
           const synteticPixel = pictureMatrix[y][x]
-          if (originalPixel === synteticPixel) {
-            fitness++
-          } else {
-            fitness--
-          }
+          fitness += originalPixel === synteticPixel ? 1 : -1
         }
       }
       cromossome.latestFitness = fitness
@@ -280,6 +263,8 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   }
 
   this.mutationRate = 5
+
+  this.chanceToMutate = 0.125
 
   this.bestCromossomeOfAllTimes = null
 
