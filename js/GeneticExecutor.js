@@ -1,6 +1,6 @@
 function RandomUtils () {
   this.randomInteger = function (min, max) {
-    return Math.floor(Math.random() * max) + min
+    return Math.floor(Math.random() * (max - min + 1)) + min
   }
 }
 
@@ -64,17 +64,24 @@ function Gene (imgWidth, imgHeight, start, end) {
   this.mutate = function (rate, chance) {
     if (Math.random() <= chance) {
       const randomUtils = new RandomUtils()
+      // x0
       this.from[0] = randomUtils.randomInteger(this.from[0] - rate, this.from[0] + rate)
-      this.from[1] = randomUtils.randomInteger(this.from[1] - rate, this.from[1] + rate)
-      this.to[0] = randomUtils.randomInteger(this.to[0] - rate, this.from[0] + rate)
-      this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.from[1] + rate)
       this.from[0] = this.from[0] > (imgWidth - 1) ? (imgWidth - 1) : this.from[0]
-      this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
-      this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
-      this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
       this.from[0] = this.from[0] < 0 ? 0 : this.from[0]
+
+      // y0
+      this.from[1] = randomUtils.randomInteger(this.from[1] - rate, this.from[1] + rate)
+      this.from[1] = this.from[1] > (imgHeight - 1) ? (imgHeight - 1) : this.from[1]
       this.from[1] = this.from[1] < 0 ? 0 : this.from[1]
+
+      // x1
+      this.to[0] = randomUtils.randomInteger(this.to[0] - rate, this.to[0] + rate)
+      this.to[0] = this.to[0] > (imgWidth - 1) ? (imgWidth - 1) : this.to[0]
       this.to[0] = this.to[0] < 0 ? 0 : this.to[0]
+
+      // y1
+      this.to[1] = randomUtils.randomInteger(this.to[1] - rate, this.to[1] + rate)
+      this.to[1] = this.to[1] > (imgHeight - 1) ? (imgHeight - 1) : this.to[1]
       this.to[1] = this.to[1] < 0 ? 0 : this.to[1]
     }
   }
@@ -121,6 +128,10 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
       matrix = utility.drawLine({matrix, x0: gene.from[0], y0: gene.from[1], x1: gene.to[0], y1: gene.to[1]})
     })
     return matrix
+  }
+
+  this.updateFitness = function (nextFitness) {
+    this.latestFitness = nextFitness
   }
 
   this.genes = initialGenes
@@ -243,10 +254,10 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
         for (let x = 0; x < originalImg.width; x++) {
           const originalPixel = this.referencePicture[y][x]
           const synteticPixel = pictureMatrix[y][x]
-          fitness += originalPixel === synteticPixel ? 1 : -1
+          fitness += (originalPixel === synteticPixel) ? 10 : -10
         }
       }
-      cromossome.latestFitness = fitness
+      cromossome.updateFitness(fitness)
     })
   }
 

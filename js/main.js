@@ -39,9 +39,8 @@ function drawGeneticImage (cromossome) {
   context.rect(0, 0, canvasGenetic.width, canvasGenetic.height)
   context.fillStyle = 'white'
   context.fill()
+  context.lineWidth = 1
   cromossome.genes.forEach((gene) => {
-    console.log(gene.from)
-    console.log(gene.to)
     context.moveTo(gene.from[0], gene.from[1])
     context.lineTo(gene.to[0], gene.to[1])
   })
