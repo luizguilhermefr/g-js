@@ -52,9 +52,8 @@ function onStartGenetics (e) {
   const lines = parseInt(linesQuantityInput.value)
   const popSize = parseInt(populationInput.value)
   const generations = parseInt(generationsInput.value)
-  const elitism = elitismCheckbox.checked
   onStartLoading()
-  new GeneticExecutor(originalSimpleImage, lines, popSize, generations, elitism).executeAll((cromossome) => {
+  new GeneticExecutor(originalSimpleImage, lines, popSize, generations).executeAll((cromossome) => {
     onEndLoading()
     drawGeneticImage(cromossome)
   })

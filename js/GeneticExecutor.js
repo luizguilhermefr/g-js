@@ -139,7 +139,7 @@ function Cromossome (genesQuantity, imgWidth, imgHeight, initialGenes = []) {
   this.latestFitness = 0
 }
 
-function GeneticExecutor (originalImg, linesQuantity, populationSize, generations, elitism = false) {
+function GeneticExecutor (originalImg, linesQuantity, populationSize, generations) {
   this.executeAll = function (callback) {
     setTimeout(() => {
       this.prepareToRun()
@@ -154,14 +154,6 @@ function GeneticExecutor (originalImg, linesQuantity, populationSize, generation
   this.prepareToRun = function () {
     this.prepareInput()
     this.generateInitialPopulation()
-  }
-
-  this.executeSingleIteration = function (callback) {
-    setTimeout(() => {
-      this.nextIteration()
-      this.currentIteration++
-      callback(this.bestCromossomeOfAllTimes)
-    }, 100)
   }
 
   this.prepareInput = function () {
